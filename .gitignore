@@ -1,5 +1,11 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+backend/node_modules/
 
-/generated/prisma
+# Environment variables
+backend/.env
+
+# Test output
+backend/coverage/
+
+# Logs
+*.log
