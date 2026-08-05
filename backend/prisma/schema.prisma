@@ -11,3 +11,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum ReadingStatus {
+  WANT_TO_READ
+  READING
+  COMPLETED
+  DID_NOT_FINISH
+}
+
+model Book {
+  id           Int           @id @default(autoincrement())
+  title        String
+  author       String
+  coverImage   String?
+  status       ReadingStatus @default(WANT_TO_READ)
+  notes        String?
+  dateStarted  DateTime?
+  dateFinished DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
