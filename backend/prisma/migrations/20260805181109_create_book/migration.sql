@@ -1,7 +1,7 @@
--- CreateEnum
+-- Create Enum
 CREATE TYPE "ReadingStatus" AS ENUM ('WANT_TO_READ', 'READING', 'COMPLETED', 'DID_NOT_FINISH');
 
--- CreateTable
+-- Create Table
 CREATE TABLE "Book" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,

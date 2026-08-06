@@ -9,3 +9,6 @@ backend/coverage/
 
 # Logs
 *.log
+
+# Prisma generated client
+generated/
