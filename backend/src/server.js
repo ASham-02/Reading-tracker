@@ -1,6 +1,9 @@
 // Import the Hapi framework so we can create our server
 const Hapi = require("@hapi/hapi");
 
+// Import the book routes from own folder
+const bookRoutes = require("./routes/bookRoutes");
+
 // Function to create and configure the server
 const createServer = async (port = 3000) => {
   // Create a new Hapi server using supplied port
@@ -26,6 +29,9 @@ const createServer = async (port = 3000) => {
       };
     },
   });
+  // Register all of our book routes
+  server.route(bookRoutes);
+
   // Return the configured server
   return server;
 };
