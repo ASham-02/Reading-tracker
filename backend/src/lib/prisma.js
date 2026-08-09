@@ -5,7 +5,7 @@ require("dotenv").config();
 const { PrismaPg } = require("@prisma/adapter-pg");
 
 // Import the Prisma files generated from the schema
-const { PrismaClient } = require("../../generated/prisma");
+const { PrismaClient } = require("../../generated/prisma/client.js");
 
 // Create a PostgreSQL adapter using the database connection string
 const adapter = new PrismaPg({
