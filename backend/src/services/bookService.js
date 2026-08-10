@@ -6,7 +6,15 @@ const getAllBooks = async () => {
   return await prisma.book.findMany();
 };
 
-// Export the service functions
+// Create a new book in the database
+const createBook = async (bookData) => {
+  return await prisma.book.create({
+    data: bookData,
+  });
+};
+
+// Export the service functions so they can be used by the controller
 export default {
   getAllBooks,
+  createBook,
 };
