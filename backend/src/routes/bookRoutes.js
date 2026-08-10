@@ -6,6 +6,11 @@ const bookRoutes = [
     path: "/books",
     handler: bookController.getAllBooks,
   },
+  {
+  method: "POST",
+  path: "/books",
+  handler: bookController.createBook,
+},
 ];
 
 export default bookRoutes;
