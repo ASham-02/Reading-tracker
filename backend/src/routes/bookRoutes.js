@@ -1,4 +1,4 @@
-const bookController = require("../controllers/bookController");
+import bookController from "../controllers/bookController.js";
 
 const bookRoutes = [
   {
@@ -8,4 +8,4 @@ const bookRoutes = [
   },
 ];
 
-module.exports = bookRoutes;
+export default bookRoutes;

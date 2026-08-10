@@ -1,5 +1,5 @@
 // Import the shared Prisma client
-const prisma = require("../lib/prisma");
+import prisma from "../lib/prisma.js";
 
 // Get all books from the database
 const getAllBooks = async () => {
@@ -7,6 +7,6 @@ const getAllBooks = async () => {
 };
 
 // Export the service functions
-module.exports = {
+export default {
   getAllBooks,
 };

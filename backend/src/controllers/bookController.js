@@ -1,4 +1,4 @@
-const bookService = require("../services/bookService");
+import bookService from "../services/bookService.js";
 
 const getAllBooks = async (request, h) => {
   try {
@@ -16,6 +16,6 @@ const getAllBooks = async (request, h) => {
   }
 };
 
-module.exports = {
+export default {
   getAllBooks,
 };
