@@ -13,8 +13,29 @@ const createBook = async (bookData) => {
   });
 };
 
+// Update an existing book in the database
+const updateBook = async (id, bookData) => {
+  return await prisma.book.update({
+    where: {
+      id: id,
+    },
+    data: bookData,
+  });
+};
+
+// Delete a book from the database
+const deleteBook = async (id) => {
+  return await prisma.book.delete({
+    where: {
+      id: id,
+    },
+  });
+};
+
 // Export the service functions so they can be used by the controller
 export default {
   getAllBooks,
   createBook,
+  updateBook,
+  deleteBook
 };
