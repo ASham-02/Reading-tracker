@@ -6,6 +6,15 @@ const getAllBooks = async () => {
   return await prisma.book.findMany();
 };
 
+// Get one book from the database using its ID
+const getBookById = async (id) => {
+  return await prisma.book.findUnique({
+    where: {
+      id: id,
+    },
+  });
+};
+
 // Create a new book in the database
 const createBook = async (bookData) => {
   return await prisma.book.create({
@@ -35,6 +44,7 @@ const deleteBook = async (id) => {
 // Export the service functions so they can be used by the controller
 export default {
   getAllBooks,
+  getBookById,
   createBook,
   updateBook,
   deleteBook

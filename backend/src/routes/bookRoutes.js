@@ -7,6 +7,11 @@ const bookRoutes = [
     handler: bookController.getAllBooks,
   },
   {
+    method: "GET",
+    path: "/books/{id}",
+    handler: bookController.getBookById,
+  },
+  {
     method: "POST",
     path: "/books",
     handler: bookController.createBook,

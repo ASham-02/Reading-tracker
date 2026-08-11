@@ -16,6 +16,38 @@ const getAllBooks = async (request, h) => {
   }
 };
 
+// Get one book by its ID
+const getBookById = async (request, h) => {
+  try {
+    // Get the ID from the URL and convert it to a number
+    const id = Number(request.params.id);
+
+    // Ask the service to find the book
+    const book = await bookService.getBookById(id);
+
+    // If no book was found, return 404
+    if (!book) {
+      return h
+        .response({
+          message: "Book not found",
+        })
+        .code(404);
+    }
+
+    // Return the book
+    return h.response(book).code(200);
+
+  } catch (error) {
+    console.error(error);
+
+    return h
+      .response({
+        message: "Failed to retrieve book",
+      })
+      .code(500);
+  }
+};
+
 const createBook = async (request, h) => {
   try {
     const book = await bookService.createBook(request.payload);
@@ -87,6 +119,7 @@ const deleteBook = async (request, h) => {
 
 export default {
   getAllBooks,
+  getBookById,
   createBook,
   updateBook,
   deleteBook
