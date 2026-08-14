@@ -8,9 +8,9 @@ import bookRoutes from "./routes/bookRoutes.js";
 const createServer = async (port = 3000) => {
   // Create a new Hapi server using supplied port
   const server = Hapi.server({
-    port,
-    // The host where the server will run
-    host: "localhost",
+  port,
+  // Allow the server to accept external connections when deployed
+  host: "0.0.0.0",
   });
 
   // Register a route (endpoint) with the server
