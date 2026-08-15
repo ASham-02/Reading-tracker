@@ -4,6 +4,9 @@ import Hapi from "@hapi/hapi";
 // Import the book routes from own folder
 import bookRoutes from "./routes/bookRoutes.js";
 
+// Import the authRoutes from own folder
+import authRoutes from "./routes/authRoutes.js";
+
 // Function to create and configure the server
 const createServer = async (port = 3000) => {
   // Create a new Hapi server using supplied port
