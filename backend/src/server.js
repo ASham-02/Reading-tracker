@@ -7,38 +7,38 @@ import bookRoutes from "./routes/bookRoutes.js";
 // Import the authRoutes from own folder
 import authRoutes from "./routes/authRoutes.js";
 
+// Import the jwtAuth from own folder
+import jwtAuth from "./auth/jwtAuth.js";
+
 // Function to create and configure the server
 const createServer = async (port = 3000) => {
-  // Create a new Hapi server using supplied port
   const server = Hapi.server({
-  port,
-  // Allow the server to accept external connections when deployed
-  host: "0.0.0.0",
+    port,
+    host: "0.0.0.0",
   });
 
-  // Register a route (endpoint) with the server
+  // Register JWT authentication
+  server.auth.scheme("jwt", jwtAuth);
+  server.auth.strategy("jwt", "jwt");
+
+  // Health route
   server.route({
     method: "GET",
-
-    // The URL path for this endpoint
     path: "/health",
-
-    // The handler function runs whenever this endpoint is requested
     handler: () => {
-      // Send a JSON response back to the client
       return {
         status: "ok",
         service: "reading-tracker-api",
       };
     },
   });
-  // Register all of our book routes
+
+  // Register book routes
   server.route(bookRoutes);
-  
-  // Register the authroutes
+
+  // Register auth routes
   server.route(authRoutes);
 
-  // Return the configured server
   return server;
 };
 

@@ -1,10 +1,17 @@
 import bookService from "../services/bookService.js";
 
+
+// Get all books belonging to the logged-in user
 const getAllBooks = async (request, h) => {
   try {
-    const books = await bookService.getAllBooks();
+    // Get the logged-in user's ID from their JWT
+    const userId = request.auth.credentials.userId;
+
+    // Only get books belonging to this user
+    const books = await bookService.getAllBooks(userId);
 
     return h.response(books).code(200);
+
   } catch (error) {
     console.error(error);
 
@@ -16,16 +23,20 @@ const getAllBooks = async (request, h) => {
   }
 };
 
+
 // Get one book by its ID
 const getBookById = async (request, h) => {
   try {
-    // Get the ID from the URL and convert it to a number
+    // Get the book ID from the URL
     const id = Number(request.params.id);
 
-    // Ask the service to find the book
-    const book = await bookService.getBookById(id);
+    // Get the logged-in user's ID from their JWT
+    const userId = request.auth.credentials.userId;
 
-    // If no book was found, return 404
+    // Find the book only if it belongs to the logged-in user
+    const book = await bookService.getBookById(id, userId);
+
+    // If the book does not exist or belongs to another user
     if (!book) {
       return h
         .response({
@@ -48,11 +59,21 @@ const getBookById = async (request, h) => {
   }
 };
 
+
+// Create a new book
 const createBook = async (request, h) => {
   try {
-    const book = await bookService.createBook(request.payload);
+    // Get the logged-in user's ID from their JWT
+    const userId = request.auth.credentials.userId;
 
-    return h.response(book).code(201);
+    // Get the book information from the request body
+    const bookData = request.payload;
+
+    // Create the book and associate it with the logged-in user
+    const newBook = await bookService.createBook(bookData, userId);
+
+    return h.response(newBook).code(201);
+
   } catch (error) {
     console.error(error);
 
@@ -64,20 +85,41 @@ const createBook = async (request, h) => {
   }
 };
 
+
 // Update an existing book
 const updateBook = async (request, h) => {
   try {
     // Get the book ID from the URL
     const id = Number(request.params.id);
 
+    // Get the logged-in user's ID from their JWT
+    const userId = request.auth.credentials.userId;
+
     // Get the updated book information from the request body
     const bookData = request.payload;
 
-    // Pass the ID and updated data to the service
-    const updatedBook = await bookService.updateBook(id, bookData);
+    // Only update the book if it belongs to the logged-in user
+    const result = await bookService.updateBook(
+      id,
+      bookData,
+      userId
+    );
 
-    // Return the updated book
-    return h.response(updatedBook).code(200);
+    // updateMany returns a count of how many records were updated
+    // If nothing was updated, the book was not found for this user
+    if (result.count === 0) {
+      return h
+        .response({
+          message: "Book not found",
+        })
+        .code(404);
+    }
+
+    return h
+      .response({
+        message: "Book updated successfully",
+      })
+      .code(200);
 
   } catch (error) {
     console.error(error);
@@ -90,16 +132,29 @@ const updateBook = async (request, h) => {
   }
 };
 
+
 // Delete an existing book
 const deleteBook = async (request, h) => {
   try {
     // Get the book ID from the URL
     const id = Number(request.params.id);
 
-    // Delete the book using the service
-    await bookService.deleteBook(id);
+    // Get the logged-in user's ID from their JWT
+    const userId = request.auth.credentials.userId;
 
-    // Return a success message
+    // Only delete the book if it belongs to the logged-in user
+    const result = await bookService.deleteBook(id, userId);
+
+    // deleteMany returns a count of how many records were deleted
+    // If nothing was deleted, the book was not found for this user
+    if (result.count === 0) {
+      return h
+        .response({
+          message: "Book not found",
+        })
+        .code(404);
+    }
+
     return h
       .response({
         message: "Book deleted successfully",
@@ -117,10 +172,12 @@ const deleteBook = async (request, h) => {
   }
 };
 
+
+// Export the controller functions
 export default {
   getAllBooks,
   getBookById,
   createBook,
   updateBook,
-  deleteBook
+  deleteBook,
 };
