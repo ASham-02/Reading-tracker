@@ -34,6 +34,9 @@ const createServer = async (port = 3000) => {
   });
   // Register all of our book routes
   server.route(bookRoutes);
+  
+  // Register the authroutes
+  server.route(authRoutes);
 
   // Return the configured server
   return server;

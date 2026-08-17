@@ -25,6 +25,28 @@ const registerUser = async (request, h) => {
   }
 };
 
+// Log in an existing user
+const loginUser = async (request, h) => {
+  try {
+    // Get the login details from the request body
+    const { email, password } = request.payload;
+
+    // Pass the details to the authentication service
+    const result = await authService.loginUser(email, password);
+
+    // Return the user information and JWT
+    return h.response(result).code(200);
+
+  } catch (error) {
+    return h
+      .response({
+        message: "Invalid email or password",
+      })
+      .code(401);
+  }
+};
+
 export default {
   registerUser,
+  loginUser,
 };
