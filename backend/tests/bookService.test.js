@@ -2,191 +2,233 @@
 import { jest } from "@jest/globals";
 
 
-// Create a mock version of Prisma's findMany function
-// This prevents the test from making a request to the real database
+// Create mock versions of the Prisma functions used by bookService
+// These prevent the tests from making requests to the real database
 const mockFindMany = jest.fn();
-// Create a mock version of Prisma's findUnique function
-const mockFindUnique = jest.fn();
-// Create a mock version of Prisma's create, update and delete funtion
+const mockFindFirst = jest.fn();
 const mockCreate = jest.fn();
-const mockUpdate = jest.fn();
-const mockDelete = jest.fn();
+const mockUpdateMany = jest.fn();
+const mockDeleteMany = jest.fn();
 
 
-// Replace the real Prisma client with a mock Prisma client for this test
+// Replace the real Prisma client with a mock Prisma client
 jest.unstable_mockModule("../src/lib/prisma.js", () => ({
   default: {
     book: {
       findMany: mockFindMany,
-      findUnique: mockFindUnique,
+      findFirst: mockFindFirst,
       create: mockCreate,
-      update: mockUpdate,
-      delete: mockDelete,
+      updateMany: mockUpdateMany,
+      deleteMany: mockDeleteMany,
     },
   },
 }));
 
 
-// Import the book service after Prisma has been mocked
-// This ensures bookService uses the mock instead of the real Prisma client
+// Import bookService after Prisma has been mocked
+// This ensures bookService uses our mock instead of the real database
 const { default: bookService } = await import(
   "../src/services/bookService.js"
 );
 
 
-// Group the book service tests together
+// Clear the mock history before every test
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+
+// Group all book service tests together
 describe("bookService", () => {
 
-  // Test that getAllBooks returns the books provided by Prisma
-  test("getAllBooks returns all books", async () => {
+  // Test that getAllBooks only searches for books belonging to the user
+  test("getAllBooks returns books belonging to the logged-in user", async () => {
+    const userId = 1;
 
-    // Create fake book data to use instead of data from the real database
     const mockBooks = [
       {
         id: 1,
         title: "The Hobbit",
         author: "J.R.R. Tolkien",
+        userId: 1,
       },
       {
         id: 2,
         title: "1984",
         author: "George Orwell",
+        userId: 1,
       },
     ];
 
-    // Tell the mocked findMany function what it should return
     mockFindMany.mockResolvedValue(mockBooks);
 
-    // Call the real getAllBooks service function
-    const result = await bookService.getAllBooks();
+    const result = await bookService.getAllBooks(userId);
 
-    // Check that the service returned the expected books
+    // Check that Prisma filters using the logged-in user's ID
+    expect(mockFindMany).toHaveBeenCalledWith({
+      where: {
+        userId: 1,
+      },
+    });
+
     expect(result).toEqual(mockBooks);
-
-    // Check that the service called Prisma's findMany function once
-    expect(mockFindMany).toHaveBeenCalledTimes(1);
   });
 
 
-  // Test that getBookById returns the correct book
-  test("getBookById returns a book by its ID", async () => {
+  // Test that getBookById searches using both book ID and user ID
+  test("getBookById returns a book belonging to the logged-in user", async () => {
+    const bookId = 1;
+    const userId = 1;
 
-    // Create a fake book to use instead of data from the real database
     const mockBook = {
       id: 1,
       title: "The Hobbit",
       author: "J.R.R. Tolkien",
+      userId: 1,
     };
 
-    // Tell the mocked findUnique function what it should return
-    mockFindUnique.mockResolvedValue(mockBook);
+    mockFindFirst.mockResolvedValue(mockBook);
 
-    // Call the real getBookById service function
-    const result = await bookService.getBookById(1);
+    const result = await bookService.getBookById(bookId, userId);
 
-    // Check that the correct book was returned
-    expect(result).toEqual(mockBook);
-
-    // Check that Prisma searched using the correct ID
-    expect(mockFindUnique).toHaveBeenCalledWith({
+    // Both IDs must match
+    expect(mockFindFirst).toHaveBeenCalledWith({
       where: {
-        id: 1,
+        id: bookId,
+        userId: userId,
       },
     });
-  });
-  // Test that createBook creates and returns a new book
-test("createBook creates a new book", async () => {
-  // Data being sent to create the book
-  const bookData = {
-    title: "The Hunger Games",
-    author: "Suzanne Collins",
-  };
 
-  // Fake result returned by Prisma after creating the book
-  const createdBook = {
-    id: 3,
-    title: "The Hunger Games",
-    author: "Suzanne Collins",
-    status: "WANT_TO_READ",
-  };
-
-  // Tell the mocked create function what it should return
-  mockCreate.mockResolvedValue(createdBook);
-
-  // Call the real service function
-  const result = await bookService.createBook(bookData);
-
-  // Check that Prisma received the correct data
-  expect(mockCreate).toHaveBeenCalledWith({
-    data: bookData,
+    expect(result).toEqual(mockBook);
   });
 
-  // Check that the created book was returned
-  expect(result).toEqual(createdBook);
-  });
-  // Test that updateBook updates and returns a book
-test("updateBook updates an existing book", async () => {
-  // ID of the book we want to update
-  const bookId = 1;
 
-  // New information for the book
-  const bookData = {
-    status: "READING",
-    notes: "Started reading this book",
-  };
+  // Test that a new book is automatically assigned to the logged-in user
+  test("createBook creates a book belonging to the logged-in user", async () => {
+    const userId = 1;
 
-  // Fake updated book returned by Prisma
-  const updatedBook = {
-    id: 1,
-    title: "The Hobbit",
-    author: "J.R.R. Tolkien",
-    status: "READING",
-    notes: "Started reading this book",
-  };
+    const bookData = {
+      title: "The Hunger Games",
+      author: "Suzanne Collins",
+    };
 
-  // Tell the mocked update function what it should return
-  mockUpdate.mockResolvedValue(updatedBook);
+    const createdBook = {
+      id: 3,
+      title: "The Hunger Games",
+      author: "Suzanne Collins",
+      status: "WANT_TO_READ",
+      userId: 1,
+    };
 
-  // Call the real service function
-  const result = await bookService.updateBook(bookId, bookData);
+    mockCreate.mockResolvedValue(createdBook);
 
-  // Check that Prisma received the correct ID and updated data
-  expect(mockUpdate).toHaveBeenCalledWith({
-    where: {
-      id: bookId,
-    },
-    data: bookData,
+    const result = await bookService.createBook(bookData, userId);
+
+    // Check that the logged-in user's ID was added to the book
+    expect(mockCreate).toHaveBeenCalledWith({
+      data: {
+        ...bookData,
+        userId: userId,
+      },
+    });
+
+    expect(result).toEqual(createdBook);
   });
 
-  // Check that the updated book was returned
-  expect(result).toEqual(updatedBook);
+
+  // Test that updateBook only updates a book belonging to the user
+  test("updateBook updates a book belonging to the logged-in user", async () => {
+    const bookId = 1;
+    const userId = 1;
+
+    const bookData = {
+      status: "READING",
+      notes: "Started reading this book",
+    };
+
+    // updateMany returns the number of records that were updated
+    const updateResult = {
+      count: 1,
+    };
+
+    mockUpdateMany.mockResolvedValue(updateResult);
+
+    const result = await bookService.updateBook(
+      bookId,
+      bookData,
+      userId
+    );
+
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: {
+        id: bookId,
+        userId: userId,
+      },
+      data: bookData,
+    });
+
+    expect(result).toEqual(updateResult);
   });
-  // Test that deleteBook deletes and returns the selected book
-test("deleteBook deletes a book", async () => {
-  // ID of the book we want to delete
-  const bookId = 1;
 
-  // Fake deleted book returned by Prisma
-  const deletedBook = {
-    id: 1,
-    title: "The Hobbit",
-    author: "J.R.R. Tolkien",
-  };
 
-  // Tell the mocked delete function what it should return
-  mockDelete.mockResolvedValue(deletedBook);
+  // Test that deleteBook only deletes a book belonging to the user
+  test("deleteBook deletes a book belonging to the logged-in user", async () => {
+    const bookId = 1;
+    const userId = 1;
 
-  // Call the real service function
-  const result = await bookService.deleteBook(bookId);
+    // deleteMany returns the number of records that were deleted
+    const deleteResult = {
+      count: 1,
+    };
 
-  // Check that Prisma was given the correct book ID
-  expect(mockDelete).toHaveBeenCalledWith({
-    where: {
-      id: bookId,
-    },
+    mockDeleteMany.mockResolvedValue(deleteResult);
+
+    const result = await bookService.deleteBook(bookId, userId);
+
+    expect(mockDeleteMany).toHaveBeenCalledWith({
+      where: {
+        id: bookId,
+        userId: userId,
+      },
+    });
+
+    expect(result).toEqual(deleteResult);
   });
 
-  // Check that the deleted book was returned
-  expect(result).toEqual(deletedBook);
+
+  // Test that User 2 cannot update a book belonging to User 1
+  test("User 2 cannot update User 1's book", async () => {
+    const bookId = 1;
+
+    // The logged-in user is User 2
+    const userId = 2;
+
+    const bookData = {
+      status: "COMPLETED",
+    };
+
+    // No record matched both bookId 1 AND userId 2,
+    // so Prisma reports that zero books were updated
+    mockUpdateMany.mockResolvedValue({
+      count: 0,
+    });
+
+    const result = await bookService.updateBook(
+      bookId,
+      bookData,
+      userId
+    );
+
+    // Check that Prisma includes User 2's ID in the query
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: {
+        id: 1,
+        userId: 2,
+      },
+      data: bookData,
+    });
+
+    // Nothing should have been updated
+    expect(result.count).toBe(0);
   });
 });
