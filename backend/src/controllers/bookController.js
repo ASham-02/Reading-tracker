@@ -1,14 +1,15 @@
 import bookService from "../services/bookService.js";
 
 
-// Get all books belonging to the logged-in user
+// Get all books
 const getAllBooks = async (request, h) => {
   try {
-    // Get the logged-in user's ID from their JWT
-    const userId = request.auth.credentials.userId;
+    // Get the logged-in user's ID and role from their JWT
+    const { userId, role } = request.auth.credentials;
 
-    // Only get books belonging to this user
-    const books = await bookService.getAllBooks(userId);
+    // USER gets their own books
+    // ADMIN can get all books
+    const books = await bookService.getAllBooks(userId, role);
 
     return h.response(books).code(200);
 
@@ -30,13 +31,18 @@ const getBookById = async (request, h) => {
     // Get the book ID from the URL
     const id = Number(request.params.id);
 
-    // Get the logged-in user's ID from their JWT
-    const userId = request.auth.credentials.userId;
+    // Get the logged-in user's ID and role from their JWT
+    const { userId, role } = request.auth.credentials;
 
-    // Find the book only if it belongs to the logged-in user
-    const book = await bookService.getBookById(id, userId);
+    // USER can only find their own book
+    // ADMIN can find any user's book
+    const book = await bookService.getBookById(
+      id,
+      userId,
+      role
+    );
 
-    // If the book does not exist or belongs to another user
+    // If the book cannot be accessed, return 404
     if (!book) {
       return h
         .response({
@@ -45,7 +51,6 @@ const getBookById = async (request, h) => {
         .code(404);
     }
 
-    // Return the book
     return h.response(book).code(200);
 
   } catch (error) {
@@ -69,8 +74,11 @@ const createBook = async (request, h) => {
     // Get the book information from the request body
     const bookData = request.payload;
 
-    // Create the book and associate it with the logged-in user
-    const newBook = await bookService.createBook(bookData, userId);
+    // The new book belongs to the logged-in user
+    const newBook = await bookService.createBook(
+      bookData,
+      userId
+    );
 
     return h.response(newBook).code(201);
 
@@ -92,21 +100,22 @@ const updateBook = async (request, h) => {
     // Get the book ID from the URL
     const id = Number(request.params.id);
 
-    // Get the logged-in user's ID from their JWT
-    const userId = request.auth.credentials.userId;
+    // Get the logged-in user's ID and role from their JWT
+    const { userId, role } = request.auth.credentials;
 
-    // Get the updated book information from the request body
+    // Get the updated information from the request body
     const bookData = request.payload;
 
-    // Only update the book if it belongs to the logged-in user
+    // USER can only update their own book
+    // ADMIN can update any user's book
     const result = await bookService.updateBook(
       id,
       bookData,
-      userId
+      userId,
+      role
     );
 
-    // updateMany returns a count of how many records were updated
-    // If nothing was updated, the book was not found for this user
+    // No matching book was found
     if (result.count === 0) {
       return h
         .response({
@@ -139,14 +148,18 @@ const deleteBook = async (request, h) => {
     // Get the book ID from the URL
     const id = Number(request.params.id);
 
-    // Get the logged-in user's ID from their JWT
-    const userId = request.auth.credentials.userId;
+    // Get the logged-in user's ID and role from their JWT
+    const { userId, role } = request.auth.credentials;
 
-    // Only delete the book if it belongs to the logged-in user
-    const result = await bookService.deleteBook(id, userId);
+    // USER can only delete their own book
+    // ADMIN can delete any user's book
+    const result = await bookService.deleteBook(
+      id,
+      userId,
+      role
+    );
 
-    // deleteMany returns a count of how many records were deleted
-    // If nothing was deleted, the book was not found for this user
+    // No matching book was found
     if (result.count === 0) {
       return h
         .response({
