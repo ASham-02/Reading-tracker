@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const AddBook = () => {
+const AddBook = ({ onBookAdded }) => {
   // Store the information entered into the form
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -43,6 +43,8 @@ const AddBook = () => {
       // Clear the form
       setTitle("");
       setAuthor("");
+      // Tell App that a new book has been added
+      onBookAdded();
 
     } catch (error) {
       console.error("Error adding book:", error);

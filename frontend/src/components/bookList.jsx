@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const BookList = () => {
+const BookList = ({ refreshBooks }) => {
   // Store the books returned by the backend
   const [books, setBooks] = useState([]);
 
@@ -38,7 +38,7 @@ const BookList = () => {
     };
 
     fetchBooks();
-  }, []);
+  }, [refreshBooks]);
 
   return (
     <section>
