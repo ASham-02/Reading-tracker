@@ -110,6 +110,44 @@ const BookList = ({ refreshBooks }) => {
     }
   };
 
+    // Delete a selected book
+    const deleteBook = async (bookId) => {
+    // Get the JWT for the logged-in user
+    const token = localStorage.getItem("token");
+
+    try {
+        // Send a DELETE request to the backend
+        const response = await fetch(
+        `http://localhost:3000/books/${bookId}`,
+        {
+            method: "DELETE",
+
+            headers: {
+            Authorization: `Bearer ${token}`,
+            },
+        }
+        );
+
+        // Convert the response into JavaScript data
+        const data = await response.json();
+
+        // Check whether deleting the book failed
+        if (!response.ok) {
+        console.log("Failed to delete book:", data.message);
+        return;
+        }
+
+        console.log("Book deleted:", data);
+
+        // Remove the deleted book from the page immediately
+        setBooks((currentBooks) =>
+        currentBooks.filter((book) => book.id !== bookId)
+        );
+    } catch (error) {
+        console.error("Error deleting book:", error);
+    }
+    };
+
   return (
     <section>
       <h2>My Books</h2>
@@ -177,15 +215,23 @@ const BookList = ({ refreshBooks }) => {
                   <button
                     type="button"
                     onClick={() => updateBook(book.id)}
-                  >
+                    >
                     Save
                   </button>
+
+                  {/* Delete the book */}    
+                  <button
+                    type="button"
+                    onClick={() => deleteBook(book.id)}
+                    >
+                    Delete
+                 </button>   
 
                   {/* Close the edit form without saving */}
                   <button
                     type="button"
                     onClick={() => setEditingBookId(null)}
-                  >
+                    >
                     Cancel
                   </button>
                 </div>
