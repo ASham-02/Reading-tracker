@@ -1,6 +1,7 @@
 import { useState } from "react";
-import Login from "./components/Login";
-import BookList from "./components/BookList";
+import Login from "./components/login";
+import BookList from "./components/bookList";
+import AddBook from "./components/addBook";
 
 function App() {
   // Check whether a token already exists
@@ -11,8 +12,11 @@ function App() {
       <h1>Reading Tracker</h1>
 
       {token ? (
-        <BookList />
-      ) : (
+        <>
+          <AddBook />
+          <BookList />
+        </>
+       ) : (
         <Login setToken={setToken} />
       )}
     </main>
