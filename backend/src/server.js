@@ -10,11 +10,18 @@ import authRoutes from "./routes/authRoutes.js";
 // Import the jwtAuth from own folder
 import jwtAuth from "./auth/jwtAuth.js";
 
-// Function to create and configure the server
 const createServer = async (port = 3000) => {
   const server = Hapi.server({
     port,
     host: "0.0.0.0",
+
+    // Allow the React frontend to make requests to the backend
+    routes: {
+      cors: {
+        origin: ["http://localhost:5173"],
+        additionalHeaders: ["content-type", "authorization"],
+      },
+    },
   });
 
   // Register JWT authentication
