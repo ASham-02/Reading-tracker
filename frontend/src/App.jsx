@@ -10,14 +10,29 @@ function App() {
   // Used to tell BookList when a new book has been added
   const [refreshBooks, setRefreshBooks] = useState(0);
 
+  // Log the user out
+  const handleLogout = () => {
+    // Remove the JWT from local storage
+    localStorage.removeItem("token");
+
+    // Update React so the login page is shown again
+    setToken(null);
+  };
+
   return (
     <main>
       <h1>Reading Tracker</h1>
 
       {token ? (
         <>
+          <button type="button" onClick={handleLogout}>
+            Logout
+          </button>
+
           <AddBook
-            onBookAdded={() => setRefreshBooks(refreshBooks + 1)}
+            onBookAdded={() =>
+              setRefreshBooks(refreshBooks + 1)
+            }
           />
 
           <BookList refreshBooks={refreshBooks} />
