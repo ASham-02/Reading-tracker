@@ -4,6 +4,9 @@ const BookList = ({ refreshBooks }) => {
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
 
+  // Store success messages for updating and deleting books
+  const [success, setSuccess] = useState("");
+
   // Track which book is currently being edited
   const [editingBookId, setEditingBookId] = useState(null);
 
@@ -46,6 +49,10 @@ const BookList = ({ refreshBooks }) => {
 
   // Start editing a selected book
   const startEditing = (book) => {
+    // Clear previous messages
+    setError("");
+    setSuccess("");
+
     // Remember which book is being edited
     setEditingBookId(book.id);
 
@@ -56,6 +63,10 @@ const BookList = ({ refreshBooks }) => {
 
   // Update the selected book
   const updateBook = async (bookId) => {
+    // Clear previous messages
+    setError("");
+    setSuccess("");
+
     // Get the JWT for the logged-in user
     const token = localStorage.getItem("token");
 
@@ -83,7 +94,7 @@ const BookList = ({ refreshBooks }) => {
 
       // Check whether the update failed
       if (!response.ok) {
-        console.log("Failed to update book:", data.message);
+        setError(data.message || "Failed to update book");
         return;
       }
 
@@ -93,7 +104,6 @@ const BookList = ({ refreshBooks }) => {
       setEditingBookId(null);
 
       // Update the book on the page immediately
-      // so the user does not need to refresh
       setBooks((currentBooks) =>
         currentBooks.map((book) =>
           book.id === bookId
@@ -105,54 +115,87 @@ const BookList = ({ refreshBooks }) => {
             : book
         )
       );
+
+      // Show a success message
+      setSuccess("Book updated successfully!");
     } catch (error) {
       console.error("Error updating book:", error);
+
+      // Show an error message on the page
+      setError("Unable to update book. Please try again.");
     }
   };
 
-    // Delete a selected book
-    const deleteBook = async (bookId) => {
+  // Delete a selected book
+  const deleteBook = async (bookId) => {
+    // Clear previous messages
+    setError("");
+    setSuccess("");
+
+    // Ask the user to confirm before deleting
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this book?"
+    );
+
+    // Stop if the user presses Cancel
+    if (!confirmed) {
+      return;
+    }
+
     // Get the JWT for the logged-in user
     const token = localStorage.getItem("token");
 
     try {
-        // Send a DELETE request to the backend
-        const response = await fetch(
+      // Send a DELETE request to the backend
+      const response = await fetch(
         `http://localhost:3000/books/${bookId}`,
         {
-            method: "DELETE",
+          method: "DELETE",
 
-            headers: {
+          headers: {
             Authorization: `Bearer ${token}`,
-            },
+          },
         }
-        );
+      );
 
-        // Convert the response into JavaScript data
-        const data = await response.json();
+      // Convert the response into JavaScript data
+      const data = await response.json();
 
-        // Check whether deleting the book failed
-        if (!response.ok) {
-        console.log("Failed to delete book:", data.message);
+      // Check whether deleting the book failed
+      if (!response.ok) {
+        setError(data.message || "Failed to delete book");
         return;
-        }
+      }
 
-        console.log("Book deleted:", data);
+      console.log("Book deleted:", data);
 
-        // Remove the deleted book from the page immediately
-        setBooks((currentBooks) =>
+      // Remove the deleted book from the page immediately
+      setBooks((currentBooks) =>
         currentBooks.filter((book) => book.id !== bookId)
-        );
+      );
+
+      // Close the edit form if the deleted book was being edited
+      setEditingBookId(null);
+
+      // Show a success message
+      setSuccess("Book deleted successfully!");
     } catch (error) {
-        console.error("Error deleting book:", error);
+      console.error("Error deleting book:", error);
+
+      // Show an error message on the page
+      setError("Unable to delete book. Please try again.");
     }
-    };
+  };
 
   return (
     <section>
       <h2>My Books</h2>
 
+      {/* Show error messages */}
       {error && <p>{error}</p>}
+
+      {/* Show success messages */}
+      {success && <p>{success}</p>}
 
       {books.length === 0 && !error ? (
         <p>No books added yet.</p>
@@ -215,23 +258,15 @@ const BookList = ({ refreshBooks }) => {
                   <button
                     type="button"
                     onClick={() => updateBook(book.id)}
-                    >
+                  >
                     Save
                   </button>
 
-                  {/* Delete the book */}    
-                  <button
-                    type="button"
-                    onClick={() => deleteBook(book.id)}
-                    >
-                    Delete
-                 </button>   
-
-                  {/* Close the edit form without saving */}
+                  {/* Cancel editing */}
                   <button
                     type="button"
                     onClick={() => setEditingBookId(null)}
-                    >
+                  >
                     Cancel
                   </button>
                 </div>
@@ -250,6 +285,14 @@ const BookList = ({ refreshBooks }) => {
                     onClick={() => startEditing(book)}
                   >
                     Edit
+                  </button>
+
+                  {/* Delete the book */}
+                  <button
+                    type="button"
+                    onClick={() => deleteBook(book.id)}
+                  >
+                    Delete
                   </button>
                 </>
               )}
