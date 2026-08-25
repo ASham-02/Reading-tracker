@@ -7,10 +7,16 @@ const Login = ({ setToken }) => {
   // Store what the user types into the password input
   const [password, setPassword] = useState("");
 
+  // Store any login error message
+  const [error, setError] = useState("");
+
   // Run when the login form is submitted
   const handleSubmit = async (event) => {
     // Prevent the page from refreshing
     event.preventDefault();
+
+    // Clear any previous error message
+    setError("");
 
     try {
       // Send the email and password to the backend
@@ -30,20 +36,26 @@ const Login = ({ setToken }) => {
       // Convert the response into JavaScript data
       const data = await response.json();
 
-      // If the login failed, show the error in the console
+      // If the login failed, show an error message
       if (!response.ok) {
-        console.log("Login failed:", data.message);
+        setError(data.message || "Login failed");
         return;
       }
 
-      // For now, show the successful response in the console
+      // Show the successful response in the console
       console.log("Login successful:", data);
+
       // Store the JWT so we can use it for protected requests
       localStorage.setItem("token", data.token);
+
       // Tell App that the user has logged in
       setToken(data.token);
+
     } catch (error) {
       console.error("Login error:", error);
+
+      // Show an error if the frontend cannot connect to the backend
+      setError("Unable to connect to the server");
     }
   };
 
@@ -60,6 +72,7 @@ const Login = ({ setToken }) => {
             id="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            required
           />
         </div>
 
@@ -71,8 +84,12 @@ const Login = ({ setToken }) => {
             id="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            required
           />
         </div>
+
+        {/* Show an error message if login fails */}
+        {error && <p>{error}</p>}
 
         <button type="submit">Login</button>
       </form>
