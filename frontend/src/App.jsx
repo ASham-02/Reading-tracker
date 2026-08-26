@@ -21,71 +21,131 @@ function App() {
   // Track whether the user wants to see Login or Register
   const [showRegister, setShowRegister] = useState(false);
 
+  // Track whether the Add Book form is open
+  const [showAddBook, setShowAddBook] = useState(false);
+
   // Used to tell BookList when a new book has been added
   const [refreshBooks, setRefreshBooks] = useState(0);
 
   // Log the user out
   const handleLogout = () => {
-    // Remove login information from local storage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // Clear the logged-in user from React
     setToken(null);
     setUser(null);
-
-    // Return to the login screen
     setShowRegister(false);
+    setShowAddBook(false);
+  };
+
+  // Run after a book has successfully been added
+  const handleBookAdded = () => {
+    // Refresh the book list
+    setRefreshBooks((current) => current + 1);
+
+    // Close the Add Book form
+    setShowAddBook(false);
   };
 
   return (
-    <main>
-      <h1>Reading Tracker</h1>
-
+    <>
       {token ? (
-        <>
-          <button type="button" onClick={handleLogout}>
-            Logout
-          </button>
+        <main className="app">
+          {/* Top navigation */}
+          <header className="app-header">
+            <p className="logo">READLIST</p>
 
-          {/* Show different content depending on the user's role */}
+            <div className="header-actions">
+              <span>{user?.email}</span>
+
+              <button
+                type="button"
+                className="logout-button"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </header>
+
           {user?.role === "ADMIN" ? (
+            /* Admin interface */
             <AdminBookList />
           ) : (
             <>
-              <AddBook
-                onBookAdded={() =>
-                  setRefreshBooks((current) => current + 1)
-                }
-              />
+              {/* Library introduction */}
+              <section className="library-hero">
+                <p className="eyebrow">PERSONAL LIBRARY</p>
+
+                <h1>
+                  Your
+                  <br />
+                  Library.
+                </h1>
+
+                <p className="hero-description">
+                  Keep track of the books you want to read,
+                  the stories you're currently exploring,
+                  and everything you've finished.
+                </p>
+              </section>
+
+              {/* Library controls */}
+              <div className="library-toolbar">
+                <div>
+                  <p className="eyebrow">COLLECTION</p>
+                  <h2>Your Books</h2>
+                </div>
+
+                <button
+                  type="button"
+                  className="add-book-button"
+                  onClick={() =>
+                    setShowAddBook((current) => !current)
+                  }
+                >
+                  {showAddBook ? "Close" : "+ Add a Book"}
+                </button>
+              </div>
+
+              {/* Only show the form when requested */}
+              {showAddBook && (
+                <AddBook onBookAdded={handleBookAdded} />
+              )}
 
               <BookList refreshBooks={refreshBooks} />
             </>
           )}
-        </>
-      ) : showRegister ? (
-        <Register
-          showLogin={() => setShowRegister(false)}
-        />
+        </main>
       ) : (
-        <>
-          <Login
-            setToken={setToken}
-            setUser={setUser}
-          />
+        <main className="auth-page">
+          <p className="logo">READLIST</p>
 
-          <p>
-            Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setShowRegister(true)}
-            >
-              Create Account
-            </button>
-          </p>
-        </>
+          {showRegister ? (
+            <Register
+              showLogin={() => setShowRegister(false)}
+            />
+          ) : (
+            <>
+              <Login
+                setToken={setToken}
+                setUser={setUser}
+              />
+
+              <p className="auth-switch">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowRegister(true)}
+                >
+                  Create Account
+                </button>
+              </p>
+            </>
+          )}
+        </main>
       )}
-    </main>
+    </>
   );
 }
 

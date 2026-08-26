@@ -8,7 +8,7 @@ const AdminBookList = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Load all books when the component first appears
+  // Load all books when the admin page opens
   useEffect(() => {
     const fetchAllBooks = async () => {
       const token = localStorage.getItem("token");
@@ -26,7 +26,7 @@ const AdminBookList = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          setError(data.message || "Failed to load admin books");
+          setError(data.message || "Failed to load books");
           return;
         }
 
@@ -39,6 +39,18 @@ const AdminBookList = () => {
 
     fetchAllBooks();
   }, []);
+
+  // Turn database statuses into readable text
+  const formatStatus = (status) => {
+    const statusLabels = {
+      WANT_TO_READ: "Want to Read",
+      READING: "Reading",
+      COMPLETED: "Completed",
+      DID_NOT_FINISH: "Did Not Finish",
+    };
+
+    return statusLabels[status] || status;
+  };
 
   // Delete any user's book
   const deleteBook = async (bookId) => {
@@ -87,39 +99,110 @@ const AdminBookList = () => {
   };
 
   return (
-    <section>
-      <h2>Admin - All Books</h2>
+    <div className="admin-page">
+      {/* Admin introduction */}
+      <section className="admin-hero">
+        <p className="eyebrow">ADMINISTRATION</p>
 
-      {error && <p>{error}</p>}
-      {success && <p>{success}</p>}
+        <div className="admin-hero__content">
+          <h1>
+            Library
+            <br />
+            Overview.
+          </h1>
 
-      {books.length === 0 && !error ? (
-        <p>No books found.</p>
-      ) : (
-        <ul>
-          {books.map((book) => (
-            <li key={book.id}>
-              <h3>{book.title}</h3>
+          <p>
+            Manage books across all registered users
+            and keep an overview of the entire library.
+          </p>
+        </div>
+      </section>
 
-              <p>{book.author}</p>
+      {/* Admin library heading */}
+      <div className="admin-toolbar">
+        <div>
+          <p className="eyebrow">MANAGEMENT</p>
+          <h2>All Books</h2>
+        </div>
 
-              <p>Status: {book.status}</p>
+        <p className="admin-count">
+          {books.length} {books.length === 1 ? "BOOK" : "BOOKS"}
+        </p>
+      </div>
 
-              <p>
-                Owner: {book.user?.email || "No owner"}
-              </p>
-
-              <button
-                type="button"
-                onClick={() => deleteBook(book.id)}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+      {/* Feedback messages */}
+      {error && (
+        <p className="message message--error">
+          {error}
+        </p>
       )}
-    </section>
+
+      {success && (
+        <p className="message message--success">
+          {success}
+        </p>
+      )}
+
+      {/* Admin book list */}
+      {books.length === 0 && !error ? (
+        <div className="empty-library">
+          <p className="eyebrow">NO BOOKS</p>
+          <p>There are currently no books in the library.</p>
+        </div>
+      ) : (
+        <div className="admin-books">
+          {/* Column headings */}
+          <div className="admin-books__head">
+            <span>Book</span>
+            <span>Owner</span>
+            <span>Status</span>
+            <span>Action</span>
+          </div>
+
+          {books.map((book) => (
+            <article
+              className="admin-book-row"
+              key={book.id}
+            >
+              <div className="admin-book-row__book">
+                <h3>{book.title}</h3>
+                <p>{book.author}</p>
+              </div>
+
+              <div className="admin-book-row__owner">
+                <span className="mobile-label">Owner</span>
+
+                <p>
+                  {book.user?.email || "No owner"}
+                </p>
+              </div>
+
+              <div className="admin-book-row__status">
+                <span className="mobile-label">
+                  Status
+                </span>
+
+                <span
+                  className={`book-status book-status--${book.status.toLowerCase()}`}
+                >
+                  {formatStatus(book.status)}
+                </span>
+              </div>
+
+              <div className="admin-book-row__action">
+                <button
+                  type="button"
+                  className="text-action text-action--danger"
+                  onClick={() => deleteBook(book.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

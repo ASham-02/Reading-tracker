@@ -47,31 +47,37 @@ const BookList = ({ refreshBooks }) => {
     fetchBooks();
   }, [refreshBooks]);
 
+  // Turn database statuses into readable text
+  const formatStatus = (status) => {
+    const statusLabels = {
+      WANT_TO_READ: "Want to Read",
+      READING: "Reading",
+      COMPLETED: "Completed",
+      DID_NOT_FINISH: "Did Not Finish",
+    };
+
+    return statusLabels[status] || status;
+  };
+
   // Start editing a selected book
   const startEditing = (book) => {
-    // Clear previous messages
     setError("");
     setSuccess("");
 
-    // Remember which book is being edited
     setEditingBookId(book.id);
 
-    // Fill the edit form with the book's current information
     setEditStatus(book.status);
     setEditNotes(book.notes || "");
   };
 
   // Update the selected book
   const updateBook = async (bookId) => {
-    // Clear previous messages
     setError("");
     setSuccess("");
 
-    // Get the JWT for the logged-in user
     const token = localStorage.getItem("token");
 
     try {
-      // Send the updated information to the backend
       const response = await fetch(
         `http://localhost:3000/books/${bookId}`,
         {
@@ -89,10 +95,8 @@ const BookList = ({ refreshBooks }) => {
         }
       );
 
-      // Convert the response into JavaScript data
       const data = await response.json();
 
-      // Check whether the update failed
       if (!response.ok) {
         setError(data.message || "Failed to update book");
         return;
@@ -116,37 +120,29 @@ const BookList = ({ refreshBooks }) => {
         )
       );
 
-      // Show a success message
       setSuccess("Book updated successfully!");
     } catch (error) {
       console.error("Error updating book:", error);
-
-      // Show an error message on the page
       setError("Unable to update book. Please try again.");
     }
   };
 
   // Delete a selected book
   const deleteBook = async (bookId) => {
-    // Clear previous messages
     setError("");
     setSuccess("");
 
-    // Ask the user to confirm before deleting
     const confirmed = window.confirm(
       "Are you sure you want to delete this book?"
     );
 
-    // Stop if the user presses Cancel
     if (!confirmed) {
       return;
     }
 
-    // Get the JWT for the logged-in user
     const token = localStorage.getItem("token");
 
     try {
-      // Send a DELETE request to the backend
       const response = await fetch(
         `http://localhost:3000/books/${bookId}`,
         {
@@ -158,10 +154,8 @@ const BookList = ({ refreshBooks }) => {
         }
       );
 
-      // Convert the response into JavaScript data
       const data = await response.json();
 
-      // Check whether deleting the book failed
       if (!response.ok) {
         setError(data.message || "Failed to delete book");
         return;
@@ -174,45 +168,63 @@ const BookList = ({ refreshBooks }) => {
         currentBooks.filter((book) => book.id !== bookId)
       );
 
-      // Close the edit form if the deleted book was being edited
       setEditingBookId(null);
 
-      // Show a success message
       setSuccess("Book deleted successfully!");
     } catch (error) {
       console.error("Error deleting book:", error);
-
-      // Show an error message on the page
       setError("Unable to delete book. Please try again.");
     }
   };
 
   return (
-    <section>
-      <h2>My Books</h2>
+    <section className="book-list">
+      {/* Feedback messages */}
+      {error && (
+        <p className="message message--error">
+          {error}
+        </p>
+      )}
 
-      {/* Show error messages */}
-      {error && <p>{error}</p>}
-
-      {/* Show success messages */}
-      {success && <p>{success}</p>}
+      {success && (
+        <p className="message message--success">
+          {success}
+        </p>
+      )}
 
       {books.length === 0 && !error ? (
-        <p>No books added yet.</p>
+        <div className="empty-library">
+          <p className="eyebrow">YOUR SHELF IS EMPTY</p>
+          <p>
+            Add your first book to start building your library.
+          </p>
+        </div>
       ) : (
-        <ul>
+        <div className="book-rows">
           {books.map((book) => (
-            <li key={book.id}>
-              <h3>{book.title}</h3>
+            <article className="book-row" key={book.id}>
+              {/* Main information about the book */}
+              <div className="book-row__header">
+                <div className="book-row__identity">
+                  <h3>{book.title}</h3>
+                  <p className="book-author">
+                    {book.author}
+                  </p>
+                </div>
 
-              <p>{book.author}</p>
+                <span
+                  className={`book-status book-status--${book.status.toLowerCase()}`}
+                >
+                  {formatStatus(book.status)}
+                </span>
+              </div>
 
-              {/* Show the edit form if this book is being edited */}
+              {/* Editing area */}
               {editingBookId === book.id ? (
-                <div>
-                  <div>
+                <div className="book-edit">
+                  <div className="book-edit__field">
                     <label htmlFor={`status-${book.id}`}>
-                      Status
+                      Reading Status
                     </label>
 
                     <select
@@ -240,7 +252,7 @@ const BookList = ({ refreshBooks }) => {
                     </select>
                   </div>
 
-                  <div>
+                  <div className="book-edit__field">
                     <label htmlFor={`notes-${book.id}`}>
                       Notes
                     </label>
@@ -251,54 +263,68 @@ const BookList = ({ refreshBooks }) => {
                       onChange={(event) =>
                         setEditNotes(event.target.value)
                       }
+                      placeholder="Add your thoughts about this book..."
                     />
                   </div>
 
-                  {/* Save the changes */}
-                  <button
-                    type="button"
-                    onClick={() => updateBook(book.id)}
-                  >
-                    Save
-                  </button>
+                  <div className="book-edit__actions">
+                    <button
+                      type="button"
+                      className="primary-action"
+                      onClick={() => updateBook(book.id)}
+                    >
+                      Save Changes
+                    </button>
 
-                  {/* Cancel editing */}
-                  <button
-                    type="button"
-                    onClick={() => setEditingBookId(null)}
-                  >
-                    Cancel
-                  </button>
+                    <button
+                      type="button"
+                      className="text-action"
+                      onClick={() =>
+                        setEditingBookId(null)
+                      }
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
-                  {/* Normal book information */}
-                  <p>Status: {book.status}</p>
+                  {/* Notes */}
+                  <div className="book-row__details">
+                    {book.notes ? (
+                      <p className="book-notes">
+                        {book.notes}
+                      </p>
+                    ) : (
+                      <p className="book-notes book-notes--empty">
+                        No notes added.
+                      </p>
+                    )}
+                  </div>
 
-                  {book.notes && (
-                    <p>Notes: {book.notes}</p>
-                  )}
+                  {/* Book controls */}
+                  <div className="book-row__actions">
+                    <button
+                      type="button"
+                      className="text-action"
+                      onClick={() => startEditing(book)}
+                    >
+                      Edit
+                    </button>
 
-                  {/* Open the edit form */}
-                  <button
-                    type="button"
-                    onClick={() => startEditing(book)}
-                  >
-                    Edit
-                  </button>
-
-                  {/* Delete the book */}
-                  <button
-                    type="button"
-                    onClick={() => deleteBook(book.id)}
-                  >
-                    Delete
-                  </button>
+                    <button
+                      type="button"
+                      className="text-action text-action--danger"
+                      onClick={() => deleteBook(book.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </>
               )}
-            </li>
+            </article>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );
