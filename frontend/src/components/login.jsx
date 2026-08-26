@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const Login = ({ setToken }) => {
+const Login = ({ setToken, setUser }) => {
   // Store what the user types into the email input
   const [email, setEmail] = useState("");
 
@@ -45,11 +45,17 @@ const Login = ({ setToken }) => {
       // Show the successful response in the console
       console.log("Login successful:", data);
 
-      // Store the JWT so we can use it for protected requests
+      // Store the JWT so protected requests can use it
       localStorage.setItem("token", data.token);
+
+      // Store the user information so it remains after refreshing
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       // Tell App that the user has logged in
       setToken(data.token);
+
+      // Tell App which user has logged in
+      setUser(data.user);
 
     } catch (error) {
       console.error("Login error:", error);
