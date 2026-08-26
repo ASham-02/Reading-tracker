@@ -7,6 +7,9 @@ import bookRoutes from "./routes/bookRoutes.js";
 // Import the authRoutes from own folder
 import authRoutes from "./routes/authRoutes.js";
 
+// Import the authRoutes from own folder
+import adminRoutes from "./routes/adminRoutes.js";
+
 // Import the jwtAuth from own folder
 import jwtAuth from "./auth/jwtAuth.js";
 
@@ -45,6 +48,9 @@ const createServer = async (port = 3000) => {
 
   // Register auth routes
   server.route(authRoutes);
+
+  // Register admin routes
+  server.route(adminRoutes);
 
   return server;
 };
