@@ -1,47 +1,52 @@
 import { useState } from "react";
 
-const BookSearch = () => {
+const BookSearch = ({ onBookAdded }) => {
   // Store what the user types into the search box
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Store books returned by Google Books
+  // Store books returned by Open Library
   const [results, setResults] = useState([]);
 
   // Store any error message
   const [error, setError] = useState("");
 
+  // Store a success message
+  const [success, setSuccess] = useState("");
+
   // Track whether a search is currently running
   const [loading, setLoading] = useState(false);
 
-  // Search Google Books
+  // Search Open Library
   const searchBooks = async (event) => {
     event.preventDefault();
 
-    // Don't search if the input is empty
     if (!searchTerm.trim()) {
-      setError("Enter a book title to search.");
+      setError("Enter a book title or author to search.");
       return;
     }
 
     setError("");
+    setSuccess("");
     setLoading(true);
+    setResults([]);
 
     try {
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          searchTerm
-        )}&maxResults=10`
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(
+          searchTerm,
+        )}&limit=10`,
       );
+
+      if (!response.ok) {
+        throw new Error(
+          `Book search failed with status ${response.status}`,
+        );
+      }
 
       const data = await response.json();
 
-      if (!response.ok) {
-        setError("Unable to search for books.");
-        return;
-      }
-
-      // Google Books returns results inside "items"
-      setResults(data.items || []);
+      // Open Library returns its books inside "docs"
+      setResults(data.docs || []);
     } catch (error) {
       console.error("Book search error:", error);
 
@@ -51,9 +56,83 @@ const BookSearch = () => {
     }
   };
 
+  // Add a book from Open Library to the user's own library
+  const addBookToLibrary = async (book) => {
+    // Clear previous messages
+    setError("");
+    setSuccess("");
+
+    // Get the logged-in user's JWT
+    const token = localStorage.getItem("token");
+
+    try {
+      // Send the selected book to our own backend
+      const response = await fetch(
+        "http://localhost:3000/books",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({
+            title: book.title,
+
+            // Open Library may return more than one author
+            author:
+              book.author_name?.join(", ") ||
+              "Unknown author",
+
+            // Save the Open Library cover if one exists
+            coverImage: book.cover_i
+              ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+              : null,
+          }),
+        },
+      );
+
+      // Convert our backend response into JavaScript data
+      const data = await response.json();
+
+      // Check whether adding the book failed
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "Failed to add book to your library.",
+        );
+        return;
+      }
+
+      console.log(
+        "Book added from Open Library:",
+        data,
+      );
+
+      // Show confirmation to the user
+      setSuccess(
+        `${book.title} was added to your library!`,
+      );
+
+      // Tell App.jsx to refresh BookList
+      onBookAdded();
+    } catch (error) {
+      console.error(
+        "Error adding book to library:",
+        error,
+      );
+
+      setError(
+        "Unable to add book to your library.",
+      );
+    }
+  };
+
   return (
     <section className="book-search">
       <p className="eyebrow">DISCOVER</p>
+
       <h2>Find a Book</h2>
 
       <form onSubmit={searchBooks}>
@@ -84,33 +163,53 @@ const BookSearch = () => {
         </p>
       )}
 
-      <div className="search-results">
-        {results.map((book) => {
-          const info = book.volumeInfo;
+      {success && (
+        <p className="message message--success">
+          {success}
+        </p>
+      )}
 
-          return (
-            <article
-              className="search-result"
-              key={book.id}
-            >
-              {info.imageLinks?.thumbnail && (
-                <img
-                  src={info.imageLinks.thumbnail}
-                  alt={`Cover of ${info.title}`}
-                />
+      <div className="search-results">
+        {results.map((book, index) => (
+          <article
+            className="search-result"
+            key={`${book.key}-${index}`}
+          >
+            {/* Show a cover if Open Library has one */}
+            {book.cover_i && (
+              <img
+                src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                alt={`Cover of ${book.title}`}
+              />
+            )}
+
+            <div>
+              <h3>{book.title}</h3>
+
+              <p>
+                {book.author_name?.join(", ") ||
+                  "Unknown author"}
+              </p>
+
+              {book.first_publish_year && (
+                <p>
+                  First published:{" "}
+                  {book.first_publish_year}
+                </p>
               )}
 
-              <div>
-                <h3>{info.title}</h3>
-
-                <p>
-                  {info.authors?.join(", ") ||
-                    "Unknown author"}
-                </p>
-              </div>
-            </article>
-          );
-        })}
+              {/* Add this Open Library result to our database */}
+              <button
+                type="button"
+                onClick={() =>
+                  addBookToLibrary(book)
+                }
+              >
+                + Add to Library
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );

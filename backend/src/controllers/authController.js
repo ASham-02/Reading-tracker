@@ -16,7 +16,6 @@ const registerUser = async (request, h) => {
         role: user.role,
       })
       .code(201);
-
   } catch (error) {
     console.error(error);
 
@@ -50,7 +49,6 @@ const loginUser = async (request, h) => {
 
     // Return the user information and JWT
     return h.response(result).code(200);
-
   } catch (error) {
     return h
       .response({

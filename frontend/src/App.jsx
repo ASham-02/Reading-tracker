@@ -4,6 +4,7 @@ import Register from "./components/register";
 import BookList from "./components/bookList";
 import AddBook from "./components/addBook";
 import AdminBookList from "./components/adminBookList";
+import BookSearch from "./components/booksearch";
 import "./App.css";
 
 function App() {
@@ -43,7 +44,7 @@ function App() {
     // Refresh the book list
     setRefreshBooks((current) => current + 1);
 
-    // Close the Add Book form
+    // Close the manual Add Book form if it is open
     setShowAddBook(false);
   };
 
@@ -89,6 +90,9 @@ function App() {
                   and everything you've finished.
                 </p>
               </section>
+
+              {/* Search for books using the external API */}
+              <BookSearch onBookAdded={handleBookAdded} />
 
               {/* Library controls */}
               <div className="library-toolbar">
