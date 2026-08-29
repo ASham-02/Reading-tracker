@@ -156,11 +156,13 @@ The tests cover:
 - Updating a book owned by the logged-in user
 - Deleting a book owned by the logged-in user
 - Preventing one user from updating another user's book
+- Preventing one user from deleting another user's book
+- Preventing one user from retrieving another user's book
 - Allowing an ADMIN to update another user's book
 
-All 7 Jest tests are currently passing.
+All 9 Jest tests are currently passing.
 
-The ownership test is particularly important because it verifies that a user cannot modify another user's data even if they know the ID of that book.
+The ownership tests are particularly important because they verify that users cannot read, update or delete another user's books even if they know the ID of the book.
 
 ### Playwright End-to-End Tests
 
@@ -183,6 +185,26 @@ Two end-to-end tests are included:
    - Confirms that the API returns a `403 Forbidden` response
 
 Both Playwright tests are currently passing.
+
+### Testing Strategy
+
+The Week 4 focus for this project was testing.
+
+The testing approach combines unit testing, end-to-end testing, authorization testing and basic performance testing.
+
+Jest is used to test the book service in isolation by mocking Prisma. Particular attention was given to ownership and role-based access control.
+
+Additional negative tests verify that:
+
+- One user cannot update another user's book
+- One user cannot delete another user's book
+- One user cannot retrieve another user's book
+
+Playwright is used to test the main CRUD user journey and an authorization failure scenario.
+
+Postman was used for manual API testing, while k6 was used for a basic API smoke test.
+
+This combination provides coverage of core functionality, user permissions and important failure cases.
 
 ---
 
