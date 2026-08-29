@@ -50,6 +50,8 @@ const loginUser = async (request, h) => {
     // Return the user information and JWT
     return h.response(result).code(200);
   } catch (error) {
+    console.error("Login error:", error);
+
     return h
       .response({
         message: "Invalid email or password",

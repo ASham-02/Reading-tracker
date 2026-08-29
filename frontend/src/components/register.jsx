@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = ({ showLogin }) => {
   // Store what the user types into the form
   const [email, setEmail] = useState("");
@@ -28,7 +30,7 @@ const Register = ({ showLogin }) => {
     try {
       // Send the new user's details to the backend
       const response = await fetch(
-        "http://localhost:3000/auth/register",
+        `${API_URL}/auth/register`,
         {
           method: "POST",
 

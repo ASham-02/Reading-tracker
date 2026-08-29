@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BookList = ({ refreshBooks }) => {
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ const BookList = ({ refreshBooks }) => {
         const token = localStorage.getItem("token");
 
         // Get the user's books from the backend
-        const response = await fetch("http://localhost:3000/books", {
+        const response = await fetch(`${API_URL}/books`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -79,7 +81,7 @@ const BookList = ({ refreshBooks }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/books/${bookId}`,
+        `${API_URL}/books/${bookId}`,
         {
           method: "PUT",
 
@@ -144,7 +146,7 @@ const BookList = ({ refreshBooks }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/books/${bookId}`,
+        `${API_URL}/books/${bookId}`,
         {
           method: "DELETE",
 

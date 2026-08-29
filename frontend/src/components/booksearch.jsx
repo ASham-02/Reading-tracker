@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BookSearch = ({ onBookAdded }) => {
   // Store what the user types into the search box
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,7 +70,7 @@ const BookSearch = ({ onBookAdded }) => {
     try {
       // Send the selected book to our own backend
       const response = await fetch(
-        "http://localhost:3000/books",
+        `${API_URL}/books`,
         {
           method: "POST",
 
