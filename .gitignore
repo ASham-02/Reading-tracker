@@ -1,0 +1,14 @@
+# Dependencies
+backend/node_modules/
+
+# Environment variables
+backend/.env
+
+# Test output
+backend/coverage/
+
+# Logs
+*.log
+
+# Prisma generated client
+generated/
