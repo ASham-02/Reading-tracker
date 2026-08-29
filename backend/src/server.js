@@ -11,7 +11,7 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
 // Import the jwtAuth from own folder
-import jwtAuth from "./auth/jwtAuth.js";
+import jwtAuth from "./auth/JwtAuth.js";
 
 const createServer = async (port = 3000) => {
   const server = Hapi.server({
