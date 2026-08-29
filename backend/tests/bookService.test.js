@@ -65,7 +65,6 @@ describe("bookService", () => {
 
     const result = await bookService.getAllBooks(userId, role);
 
-    // Check that Prisma filters using the logged-in user's ID
     expect(mockFindMany).toHaveBeenCalledWith({
       where: {
         userId: userId,
@@ -97,7 +96,6 @@ describe("bookService", () => {
       role
     );
 
-    // Both the book ID and user ID must match
     expect(mockFindFirst).toHaveBeenCalledWith({
       where: {
         id: bookId,
@@ -133,7 +131,6 @@ describe("bookService", () => {
       userId
     );
 
-    // Check that the logged-in user's ID was added to the book
     expect(mockCreate).toHaveBeenCalledWith({
       data: {
         ...bookData,
@@ -156,7 +153,6 @@ describe("bookService", () => {
       notes: "Started reading this book",
     };
 
-    // updateMany returns the number of records that were updated
     const updateResult = {
       count: 1,
     };
@@ -170,7 +166,6 @@ describe("bookService", () => {
       role
     );
 
-    // A USER must be restricted by their userId
     expect(mockUpdateMany).toHaveBeenCalledWith({
       where: {
         id: bookId,
@@ -189,7 +184,6 @@ describe("bookService", () => {
     const userId = 1;
     const role = "USER";
 
-    // deleteMany returns the number of records that were deleted
     const deleteResult = {
       count: 1,
     };
@@ -202,7 +196,6 @@ describe("bookService", () => {
       role
     );
 
-    // A USER must be restricted by their userId
     expect(mockDeleteMany).toHaveBeenCalledWith({
       where: {
         id: bookId,
@@ -217,8 +210,6 @@ describe("bookService", () => {
   // Test that User 2 cannot update a book belonging to User 1
   test("User 2 cannot update User 1's book", async () => {
     const bookId = 1;
-
-    // The logged-in user is User 2
     const userId = 2;
     const role = "USER";
 
@@ -226,8 +217,6 @@ describe("bookService", () => {
       status: "COMPLETED",
     };
 
-    // No record matched both bookId 1 AND userId 2,
-    // so Prisma reports that zero books were updated
     mockUpdateMany.mockResolvedValue({
       count: 0,
     });
@@ -239,7 +228,6 @@ describe("bookService", () => {
       role
     );
 
-    // A normal USER must be restricted by their userId
     expect(mockUpdateMany).toHaveBeenCalledWith({
       where: {
         id: bookId,
@@ -248,7 +236,6 @@ describe("bookService", () => {
       data: bookData,
     });
 
-    // Nothing should have been updated
     expect(result.count).toBe(0);
   });
 
@@ -256,8 +243,6 @@ describe("bookService", () => {
   // Test that an ADMIN can update another user's book
   test("ADMIN can update another user's book", async () => {
     const bookId = 1;
-
-    // The admin has a different user ID from the book owner
     const adminUserId = 3;
     const role = "ADMIN";
 
@@ -265,7 +250,6 @@ describe("bookService", () => {
       status: "COMPLETED",
     };
 
-    // Prisma reports that one book was successfully updated
     mockUpdateMany.mockResolvedValue({
       count: 1,
     });
@@ -277,8 +261,6 @@ describe("bookService", () => {
       role
     );
 
-    // ADMIN should search using the book ID only
-    // The admin's own userId should not restrict the query
     expect(mockUpdateMany).toHaveBeenCalledWith({
       where: {
         id: bookId,
@@ -286,7 +268,63 @@ describe("bookService", () => {
       data: bookData,
     });
 
-    // One book should have been updated
     expect(result.count).toBe(1);
+  });
+
+
+  // Test that a user cannot delete a book belonging to another user
+  test("User 2 cannot delete User 1's book", async () => {
+    const bookId = 1;
+    const userId = 2;
+    const role = "USER";
+
+    // No book matches both this book ID and User 2's ID
+    mockDeleteMany.mockResolvedValue({
+      count: 0,
+    });
+
+    const result = await bookService.deleteBook(
+      bookId,
+      userId,
+      role
+    );
+
+    // The delete must include the logged-in user's ID
+    expect(mockDeleteMany).toHaveBeenCalledWith({
+      where: {
+        id: bookId,
+        userId: userId,
+      },
+    });
+
+    // No book should have been deleted
+    expect(result.count).toBe(0);
+  });
+
+
+  // Test that a user cannot retrieve a book belonging to another user
+  test("User 2 cannot retrieve User 1's book", async () => {
+    const bookId = 1;
+    const userId = 2;
+    const role = "USER";
+
+    // Prisma finds nothing because the book does not belong to User 2
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await bookService.getBookById(
+      bookId,
+      userId,
+      role
+    );
+
+    // The query must require both the book ID and logged-in user ID
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: {
+        id: bookId,
+        userId: userId,
+      },
+    });
+
+    expect(result).toBeNull();
   });
 });
