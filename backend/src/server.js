@@ -21,7 +21,9 @@ const createServer = async (port = 3000) => {
     // Allow the React frontend to make requests to the backend
     routes: {
       cors: {
-        origin: ["http://localhost:5173"],
+        origin: ["http://localhost:5173",
+          "https://reading-tracker-1-t5y5.onrender.com",
+        ],
         additionalHeaders: ["content-type", "authorization"],
       },
     },
