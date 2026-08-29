@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Login = ({ setToken, setUser }) => {
   // Store what the user types into the email input
   const [email, setEmail] = useState("");
@@ -20,7 +22,7 @@ const Login = ({ setToken, setUser }) => {
 
     try {
       // Send the email and password to the backend
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
 
         headers: {

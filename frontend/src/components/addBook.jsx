@@ -1,4 +1,5 @@
 import { useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AddBook = ({ onBookAdded }) => {
   // Store the information entered into the form
@@ -29,7 +30,7 @@ const AddBook = ({ onBookAdded }) => {
 
     try {
       // Send the new book to the backend
-      const response = await fetch("http://localhost:3000/books", {
+      const response = await fetch(`${API_URL}/books`, {
         method: "POST",
 
         headers: {

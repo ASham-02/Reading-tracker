@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdminBookList = () => {
   // Store all books returned from the admin endpoint
   const [books, setBooks] = useState([]);
@@ -15,7 +17,7 @@ const AdminBookList = () => {
 
       try {
         const response = await fetch(
-          "http://localhost:3000/admin/books",
+          `${API_URL}/admin/books`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -69,7 +71,7 @@ const AdminBookList = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/admin/books/${bookId}`,
+        `${API_URL}/admin/books/${bookId}`,
         {
           method: "DELETE",
 
